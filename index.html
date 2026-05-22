@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moto Express — Logística urbana rápida y confiable</title>
+<meta name="description" content="Cadetería en moto, entregas express, trámites y logística urbana en Zona Sur. Servicio rápido, seguro y con seguimiento en tiempo real.">
+<meta property="og:title" content="Moto Express — Logística urbana rápida y confiable">
+<meta property="og:description" content="Cadetería en moto, entregas express y logística para empresas. Atención inmediata por WhatsApp.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700;800&family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;1,14..32,300&display=swap" rel="stylesheet">
+<style>
+  /* ============== TOKENS ============== */
+  :root {
+    --black:    #080808;
+    --black2:   #0f0f0f;
+    --surface:  #141414;
+    --surface2: #1a1a1a;
+    --border:   #1e1e1e;
+    --border2:  #252525;
+    --red:      #C41E1E;
+    --red-l:    #E52E2E;
+    --red-xl:   #FF4444;
+    --white:    #f5f5f5;
+    --muted:    #6b6b6b;
+    --muted2:   #9a9a9a;
+    --blue:     #8B9DC3;
+    --blue-dim: rgba(139,157,195,0.4);
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* ============== RESET ============== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: var(--red) transparent; -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection { background: var(--red); color: var(--white); }
+  :focus-visible { outline: 2px solid var(--red-l); outline-offset: 3px; border-radius: 4px; }
+  img, svg { display: block; max-width: 100%; }
+  img { height: auto; }
+  a { color: inherit; text-decoration: none; }
+  p { text-wrap: pretty; }
+
+  /* ============== NOISE OVERLAY ============== */
+  .noise {
+    position: fixed; inset: 0; pointer-events: none; z-index: 1; opacity: 0.35;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+
+  /* ============== CURSOR ============== */
+  #cursor {
+    width: 10px; height: 10px;
+    background: var(--red-l);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%,-50%);
+    transition: transform 0.08s ease, width 0.25s, height 0.25s, opacity 0.25s;
+    mix-blend-mode: difference;
+    opacity: 0;
+  }
+  #cursor.hover { width: 36px; height: 36px; opacity: 0.6; }
+
+  /* ============== SKIP LINK ============== */
+  .skip-link { position: fixed; top: -100px; left: 1rem; padding: .6rem 1rem; background: var(--red); color: var(--white); z-index: 9999; border-radius: 8px; font-weight: 600; font-family: 'Montserrat', sans-serif; }
+  .skip-link:focus { top: 1rem; }
+
+  /* ============== NAV ============== */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    padding: 0 5%;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 72px;
+    background: rgba(8,8,8,0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-brand { font-family: 'Bebas Neue', sans-serif; font-weight: 400; font-size: 1.6rem; letter-spacing: 0.04em; }
+  .nav-brand span { color: var(--red-l); }
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a { color: var(--muted2); font-size: 0.85rem; letter-spacing: 0.02em; transition: color 0.2s; font-family: 'Montserrat', sans-serif; font-weight: 500; }
+  .nav-links a:hover { color: var(--white); }
+  .nav-cta {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.55rem 1.4rem;
+    background: var(--red); color: var(--white);
+    font-family: 'Montserrat', sans-serif; font-weight: 700;
+    font-size: 0.8rem; letter-spacing: 0.03em;
+    border-radius: 6px; transition: background 0.2s;
+  }
+  .nav-cta:hover { background: var(--red-l); }
+
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; background: none; border: none; }
+  .hamburger span { display: block; width: 24px; height: 2px; background: var(--white); transition: 0.3s; }
+  .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px,5px); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
+
+  .mobile-menu {
+    display: none; position: fixed; inset: 0; top: 72px;
+    background: rgba(8,8,8,0.97); backdrop-filter: blur(20px);
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 2.5rem; z-index: 99;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a { color: var(--white); font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.04em; }
+
+  /* ============== TYPOGRAPHY ============== */
+  h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(4rem, 10vw, 8rem); font-weight: 400; line-height: 0.92; letter-spacing: 0.02em; text-transform: uppercase; }
+  h2 { font-family: 'Montserrat', sans-serif; font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+  h3 { font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+  h4 { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: var(--white); letter-spacing: -0.01em; }
+  .section-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--red-l); margin-bottom: 1rem; display: block; font-family: 'Montserrat', sans-serif; }
+  .section-header { max-width: 600px; margin-bottom: 4rem; }
+  .section-header p { color: var(--muted2); margin-top: 1rem; font-size: 1rem; line-height: 1.7; }
+  .section-header.centered { text-align: center; margin-left: auto; margin-right: auto; }
+  .section-lead { color: var(--muted2); font-size: 1rem; line-height: 1.7; margin: 1rem 0 2rem; }
+
+  /* ============== BUTTONS ============== */
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    padding: 0.9rem 2.2rem;
+    background: var(--red); color: var(--white);
+    font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.9rem;
+    letter-spacing: 0.02em; border: none; border-radius: 8px;
+    cursor: pointer; transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+    position: relative; overflow: hidden;
+  }
+  .btn-primary::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent); pointer-events: none; }
+  .btn-primary:hover { background: var(--red-l); box-shadow: 0 0 32px rgba(229,46,46,0.35); }
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.9rem 2.2rem;
+    background: transparent; color: var(--muted2);
+    font-family: 'Montserrat', sans-serif; font-weight: 500; font-size: 0.85rem;
+    border: 1px solid var(--border2); border-radius: 8px;
+    cursor: pointer; transition: color 0.2s, border-color 0.2s;
+  }
+  .btn-ghost:hover { color: var(--white); border-color: var(--muted); }
+
+  /* ============== REVEAL ANIMATIONS ============== */
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out); }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  [style*="--i:0"] { transition-delay: 0ms; }
+  [style*="--i:1"] { transition-delay: 100ms; }
+  [style*="--i:2"] { transition-delay: 200ms; }
+  [style*="--i:3"] { transition-delay: 300ms; }
+  [style*="--i:4"] { transition-delay: 400ms; }
+  [style*="--i:5"] { transition-delay: 500ms; }
+  .reveal-left { opacity: 0; transform: translateX(-40px); transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out); }
+  .reveal-left.visible { opacity: 1; transform: translateX(0); }
+  .reveal-right { opacity: 0; transform: translateX(40px); transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out); }
+  .reveal-right.visible { opacity: 1; transform: translateX(0); }
+
+  /* ============== HERO ANIMATION STAGE ============== */
+  #hero {
+    width: 100%;
+    min-height: auto;
+    padding: 0;
+    position: relative;
+  }
+  .animation-stage {
+    width: 100%;
+    height: 560px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, #060610 0%, #0a0a18 30%, #0d0d14 60%, var(--black) 100%);
+  }
+  /* Ambient vignette */
+  .stage-vignette {
+    position: absolute; inset: 0; z-index: 1;
+    background: radial-gradient(ellipse 60% 50% at 50% 45%, transparent 40%, rgba(0,0,0,0.5) 100%);
+    pointer-events: none;
+  }
+  /* City silhouette — minimal elegant buildings */
+  .city-silhouette {
+    position: absolute;
+    bottom: 160px; left: 0;
+    width: 200%; height: 140px;
+    z-index: 2;
+    opacity: 0.4;
+    animation: cityDrift 60s linear infinite;
+  }
+  @keyframes cityDrift {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  /* Route path — elegant glowing line */
+  .route-path {
+    position: absolute;
+    bottom: 155px; left: 0; right: 0;
+    height: 2px;
+    z-index: 4;
+    background: linear-gradient(90deg, transparent 5%, rgba(229,46,46,0.15) 10%, rgba(229,46,46,0.25) 50%, rgba(46,125,50,0.25) 85%, rgba(46,125,50,0.1) 92%, transparent 96%);
+  }
+  .route-pulse {
+    position: absolute;
+    bottom: 151px;
+    height: 10px; width: 60px;
+    z-index: 4;
+    background: radial-gradient(ellipse at center, rgba(229,46,46,0.4), transparent 70%);
+    border-radius: 50%;
+    animation: routePulse 8s ease-in-out infinite;
+  }
+  @keyframes routePulse {
+    0%   { left: -60px; }
+    5%   { left: 5%; }
+    45%  { left: 45%; }
+    55%  { left: 55%; }
+    90%  { left: 90%; }
+    95%  { left: 95%; }
+    100% { left: calc(100% + 60px); }
+  }
+  /* Atmospheric particles (mist/fog, subtle) */
+  .atmosphere {
+    position: absolute; inset: 0; z-index: 3; pointer-events: none; overflow: hidden;
+  }
+  .mist-particle {
+    position: absolute;
+    width: 1px; height: 40px;
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,0.06), transparent);
+    animation: mistDrift 8s linear infinite;
+  }
+  @keyframes mistDrift {
+    0%   { transform: translateX(-100px); opacity: 0; }
+    20%  { opacity: 1; }
+    80%  { opacity: 1; }
+    100% { transform: translateX(calc(100vw + 100px)); opacity: 0; }
+  }
+  /* Delivery dot — glowing point traveling the route */
+  .delivery-dot {
+    position: absolute;
+    bottom: 153px;
+    left: -20px;
+    z-index: 10;
+    width: 14px; height: 14px;
+    background: var(--red-l);
+    border-radius: 50%;
+    box-shadow:
+      0 0 6px #fff, 0 0 14px #fff, 0 0 20px var(--red-l),
+      0 0 40px rgba(229,46,46,0.7), 0 0 70px rgba(229,46,46,0.4),
+      0 0 100px rgba(229,46,46,0.2);
+    animation: dotTravel 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+  @keyframes dotTravel {
+    0%   { left: -20px; }
+    6%   { left: 6%; }
+    42%  { left: 44%; }
+    56%  { left: 56%; }
+    88%  { left: 88%; }
+    94%  { left: 94%; }
+    100% { left: calc(100% + 20px); }
+  }
+  /* White sparkle cross */
+  .delivery-dot::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    background:
+      radial-gradient(ellipse 8px 2px at 50% 50%, rgba(255,255,255,0.9) 0%, transparent 100%),
+      radial-gradient(ellipse 2px 8px at 50% 50%, rgba(255,255,255,0.9) 0%, transparent 100%);
+    animation: sparkleSpin 3s linear infinite;
+  }
+  @keyframes sparkleSpin {
+    0%   { transform: rotate(0deg) scale(0.8); opacity: 0.4; }
+    50%  { transform: rotate(180deg) scale(1.3); opacity: 1; }
+    100% { transform: rotate(360deg) scale(0.8); opacity: 0.4; }
+  }
+  /* Outer pulse ring */
+  .delivery-dot::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.6);
+    animation: dotTrailPulse 1.5s ease-out infinite;
+  }
+  @keyframes dotTrailPulse {
+    0%   { width: 8px; height: 8px; opacity: 0.9; border-color: rgba(255,255,255,0.7); }
+    100% { width: 50px; height: 50px; opacity: 0; border-color: rgba(255,255,255,0); }
+  }
+  /* Floating badge */
+  .floating-badge {
+    position: absolute;
+    top: 36px; right: 36px;
+    z-index: 20;
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 20px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-size: 0.68rem; font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+    font-family: 'Montserrat', sans-serif;
+  }
+  .badge-dot { width: 5px; height: 5px; background: var(--red-l); border-radius: 50%; opacity: 0.8; }
+  /* Delivery indicator */
+  .delivery-indicator {
+    position: absolute;
+    top: 36px; left: 36px;
+    z-index: 20;
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 20px 9px 14px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-size: 0.7rem; font-weight: 500;
+    letter-spacing: 0.04em;
+    color: rgba(255,255,255,0.6);
+    font-family: 'Montserrat', sans-serif;
+  }
+  .delivery-time {
+    font-weight: 600;
+    font-size: 1rem;
+    color: rgba(255,255,255,0.9);
+    font-variant-numeric: tabular-nums;
+    font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  }
+  /* Status tracker */
+  .status-tracker {
+    position: absolute;
+    bottom: 210px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 15;
+    display: flex;
+    gap: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 100px;
+    padding: 4px;
+  }
+  .status-chip {
+    display: flex; align-items: center; gap: 7px;
+    padding: 8px 20px;
+    border-radius: 100px;
+    font-size: 0.68rem; font-weight: 500;
+    letter-spacing: 0.04em;
+    color: rgba(255,255,255,0.25);
+    font-family: 'Montserrat', sans-serif;
+    transition: all 0.6s ease;
+    white-space: nowrap;
+    background: transparent;
+    border: none;
+    position: relative;
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.15); transition: all 0.6s ease; }
+  /* Active states */
+  .status-chip.active-retiro {
+    color: rgba(255,255,255,0.95);
+    background: rgba(229,46,46,0.2);
+    box-shadow: inset 0 0 20px rgba(229,46,46,0.08);
+  }
+  .status-chip.active-retiro .status-dot { background: var(--red-l); box-shadow: 0 0 6px var(--red-l); }
+  .status-chip.active-camino {
+    color: rgba(255,255,255,0.95);
+    background: rgba(245,124,0,0.2);
+    box-shadow: inset 0 0 20px rgba(245,124,0,0.08);
+  }
+  .status-chip.active-camino .status-dot { background: #F57C00; box-shadow: 0 0 6px #F57C00; }
+  .status-chip.active-entregado {
+    color: rgba(255,255,255,0.95);
+    background: rgba(46,125,50,0.2);
+    box-shadow: inset 0 0 20px rgba(46,125,50,0.08);
+  }
+  .status-chip.active-entregado .status-dot { background: #4CAF50; box-shadow: 0 0 6px #4CAF50; }
+  /* Endpoint markers */
+  .endpoint {
+    position: absolute; bottom: 182px; z-index: 12; display: flex; align-items: center; gap: 10px;
+    font-size: 0.62rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    font-family: 'Montserrat', sans-serif; color: rgba(255,255,255,0.4);
+  }
+  .endpoint-pickup { left: 7%; }
+  .endpoint-dropoff { right: 7%; }
+  .endpoint-marker { width: 7px; height: 7px; border-radius: 50%; }
+  .endpoint-pickup .endpoint-marker { background: var(--red-l); box-shadow: 0 0 8px rgba(229,46,46,0.3); }
+  .endpoint-dropoff .endpoint-marker { background: #4CAF50; box-shadow: 0 0 8px rgba(46,125,50,0.3); }
+  /* Map grid lines on animation stage */
+  .map-grid {
+    position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.06;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 40%, transparent 80%);
+  }
+  /* Steps visual */
+  .steps-visual {
+    display: block;
+    max-width: 800px;
+    margin: 0 auto 2.5rem;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.06);
+    opacity: 0.5;
+    width: 100%;
+    height: auto;
+  }
+  /* Ecommerce dashboard img */
+  .eco-dash-img {
+    width: 100%;
+    max-width: 500px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    opacity: 0.7;
+    transition: opacity 0.4s;
+  }
+  .eco-dash-img:hover { opacity: 0.9; }
+  /* Feature cards */
+  .feature-cards-row {
+    display: flex;
+    gap: 1.5rem;
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 3.5rem 5%;
+    justify-content: center;
+    position: relative; z-index: 2;
+  }
+  .feature-card {
+    flex: 1;
+    min-width: 0;
+    max-width: 330px;
+    background: rgba(20,20,20,0.7);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 2.25rem 1.75rem;
+    text-align: center;
+    transition: border-color 0.35s, transform 0.35s, box-shadow 0.35s, background 0.35s;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 12px; right: 12px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(229,46,46,0.3), transparent);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .feature-card:hover {
+    border-color: rgba(255,255,255,0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+    background: rgba(24,24,24,0.85);
+  }
+  .feature-card:hover::before { opacity: 1; }
+  .feature-card-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    background: rgba(229,46,46,0.06);
+    border: 1px solid rgba(229,46,46,0.12);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.25rem;
+    color: var(--red-l);
+  }
+  .feature-card-icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .feature-card h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem; font-weight: 600;
+    margin-bottom: 0.4rem; letter-spacing: -0.01em;
+  }
+  .feature-card p { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+
+  /* ============== SECTIONS COMMON ============== */
+  section { padding: 7rem 5%; position: relative; z-index: 2; }
+  #stats { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 5rem 5%; }
+  #servicios, #como-funciona, #por-que, #testimonios, #cta-final { background: var(--black); }
+  #ecommerce { background: var(--black2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  #transporte-express { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  #cobertura { background: var(--black); border-bottom: 1px solid var(--border); }
+  #testimonios { background: var(--black2); }
+
+  /* ============== STATS ============== */
+  .stats-bg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.08; pointer-events: none; z-index: 0; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); max-width: 960px; margin: 0 auto; position: relative; z-index: 1; }
+  .stat-item { text-align: center; padding: 2rem 1rem; border-right: 1px solid var(--border); }
+  .stat-item:last-child { border-right: none; }
+  .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem, 6vw, 4.5rem); font-weight: 400; letter-spacing: 0.02em; color: var(--red-l); line-height: 1; }
+  .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem; letter-spacing: 0.04em; font-family: 'Montserrat', sans-serif; font-weight: 500; text-transform: uppercase; }
+
+  /* ============== SERVICES ============== */
+  .services-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: 16px;
+    overflow: hidden; max-width: 1100px; margin: 0 auto;
+  }
+  .service-card {
+    background: var(--surface); padding: 2.5rem 2rem;
+    transition: background 0.3s, transform 0.3s; position: relative; overflow: hidden;
+  }
+  .service-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 0% 0%, rgba(196,30,30,0.06), transparent 60%); opacity: 0; transition: opacity 0.4s; }
+  .service-card:hover { background: #181818; transform: translateY(-4px); }
+  .service-card:hover::before { opacity: 1; }
+  .service-icon { width: 44px; height: 44px; border-radius: 10px; background: rgba(196,30,30,0.1); border: 1px solid rgba(196,30,30,0.18); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; color: var(--red-l); }
+  .service-card h3 { margin-bottom: 0.75rem; }
+  .service-card p { font-size: 0.85rem; color: var(--muted); line-height: 1.65; }
+
+  /* ============== STEPS ============== */
+  .steps-track { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; max-width: 1100px; margin: 0 auto; }
+  .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; position: relative; transition: border-color 0.3s, transform 0.3s; }
+  .step-card:hover { border-color: rgba(196,30,30,0.3); transform: translateY(-4px); }
+  .step-num { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; font-weight: 400; color: rgba(196,30,30,0.12); line-height: 1; margin-bottom: 0.5rem; letter-spacing: 0.02em; }
+  .step-card h3 { margin-bottom: 0.6rem; }
+  .step-card p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+  /* ============== BENEFITS ============== */
+  .benefits-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; max-width: 1100px; margin: 0 auto; }
+  .benefit-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 2rem; transition: border-color 0.3s, transform 0.3s; }
+  .benefit-card:hover { border-color: rgba(196,30,30,0.3); transform: translateY(-3px); }
+  .benefit-icon { width: 40px; height: 40px; border-radius: 8px; background: rgba(196,30,30,0.1); border: 1px solid rgba(196,30,30,0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; color: var(--red-l); }
+  .benefit-card h4 { margin-bottom: 0.5rem; }
+  .benefit-card p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+  /* ============== ECOMMERCE ============== */
+  .section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; max-width: 1100px; margin: 0 auto; }
+  .eco-features { display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem; list-style: none; }
+  .eco-features li { display: flex; gap: 0.85rem; align-items: flex-start; padding: 1rem; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); transition: border-color 0.3s, transform 0.3s; }
+  .eco-features li:hover { border-color: rgba(196,30,30,0.25); transform: translateX(4px); }
+  .eco-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red-l); flex-shrink: 0; margin-top: 6px; }
+  .eco-features li strong { display: block; font-size: 0.85rem; font-family: 'Montserrat', sans-serif; font-weight: 700; color: var(--white); margin-bottom: 3px; }
+  .eco-features li span { display: block; font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+  .eco-visual { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+  .eco-visual-inner { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem 2rem; text-align: center; min-width: 180px; transition: border-color 0.3s, transform 0.3s; }
+  .eco-visual-inner:hover { border-color: rgba(196,30,30,0.3); transform: translateY(-4px); }
+  .eco-icon-lg { width: 56px; height: 56px; border-radius: 14px; background: rgba(196,30,30,0.08); border: 1px solid rgba(196,30,30,0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; color: var(--red-l); }
+  .eco-stat { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; font-weight: 400; color: var(--red-l); line-height: 1.2; letter-spacing: 0.02em; }
+  .eco-stat-label { font-size: 0.78rem; color: var(--muted); margin-top: 0.35rem; line-height: 1.4; }
+
+  /* ============== TRANSPORTE EXPRESS ============== */
+  .te-section { max-width: 1100px; margin: 0 auto; }
+  .te-label { color: var(--blue) !important; }
+  .te-visual { display: flex; align-items: center; justify-content: center; gap: 2rem; margin-bottom: 3rem; }
+  .te-badge { display: flex; align-items: center; gap: 1rem; font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted2); }
+  .te-badge-line { width: 40px; height: 1px; background: var(--border2); }
+  .te-visual-img { max-height: 120px; width: auto; opacity: 0.5; transition: opacity 0.4s; }
+  .te-visual:hover .te-visual-img { opacity: 0.7; }
+  /* Logo carousel */
+  .logo-carousel {
+    width: 100%; overflow: hidden; position: relative;
+    margin-bottom: 3rem; padding: 1.5rem 0;
+  }
+  .logo-carousel-track {
+    display: flex; gap: 4rem;
+    width: max-content;
+    animation: carouselScroll 16s linear infinite;
+  }
+  .logo-carousel-item {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem; letter-spacing: 0.06em;
+    white-space: nowrap; flex-shrink: 0;
+    font-weight: 400;
+  }
+  .logo-carousel-item.moto { color: var(--red-l); }
+  .logo-carousel-item.transporte { color: var(--blue); }
+  @keyframes carouselScroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .te-features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+  .te-feature { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem; transition: border-color 0.3s, transform 0.3s; }
+  .te-feature:hover { border-color: rgba(139,157,195,0.3); transform: translateY(-3px); }
+  .te-feature-icon { width: 40px; height: 40px; border-radius: 8px; background: rgba(139,157,195,0.1); border: 1px solid rgba(139,157,195,0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; color: var(--blue); }
+  .te-feature h4 { margin-bottom: 0.4rem; }
+  .te-feature p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+  /* ============== COVERAGE ============== */
+  .coverage-map { max-width: 1100px; margin: 0 auto; text-align: center; }
+  .coverage-map-container { position: relative; width: 100%; max-width: 600px; height: 240px; margin: 0 auto 2.5rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.06); background: rgba(10,10,18,0.6); overflow: hidden; }
+  /* Map grid lines */
+  .coverage-map-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 30px 30px;
+    pointer-events: none;
+  }
+  /* Coverage zone dots on map */
+  .coverage-map-dot {
+    position: absolute;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    animation: mapDotFade 3s ease-in-out infinite;
+  }
+  @keyframes mapDotFade {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.7; }
+  }
+  /* GPS search dot — moves around the map */
+  .coverage-gps-dot {
+    position: absolute;
+    width: 10px; height: 10px;
+    background: var(--red-l);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--red-l), 0 0 24px rgba(229,46,46,0.5);
+    z-index: 5;
+    animation: gpsSearch 12s ease-in-out infinite;
+  }
+  .coverage-gps-dot::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 1px solid rgba(229,46,46,0.3);
+    animation: gpsRingPulse 2s ease-out infinite;
+  }
+  @keyframes gpsRingPulse {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(3); opacity: 0; }
+  }
+  @keyframes gpsSearch {
+    0%   { top: 20%; left: 15%; }
+    15%  { top: 35%; left: 30%; }
+    30%  { top: 25%; left: 55%; }
+    45%  { top: 50%; left: 70%; }
+    60%  { top: 40%; left: 50%; }
+    75%  { top: 60%; left: 25%; }
+    90%  { top: 20%; left: 40%; }
+    100% { top: 20%; left: 15%; }
+  }
+  /* Zone labels on map */
+  .coverage-map-label {
+    position: absolute;
+    font-size: 0.5rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: rgba(255,255,255,0.3);
+    font-family: 'Montserrat', sans-serif;
+    pointer-events: none;
+  }
+  .coverage-zones { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; margin-bottom: 2rem; }
+  .coverage-zones span { padding: 0.5rem 1.2rem; border-radius: 100px; border: 1px solid var(--border2); background: var(--surface); font-size: 0.82rem; color: var(--muted2); transition: border-color 0.3s, color 0.3s, transform 0.3s; }
+  .coverage-zones span:hover { border-color: var(--red); color: var(--white); transform: translateY(-2px); }
+  .coverage-note { font-size: 0.85rem; color: var(--muted); }
+
+  /* ============== TESTIMONIALS ============== */
+  .testimonials-track { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; max-width: 1100px; margin: 0 auto; }
+  .testimonial-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 2rem; transition: border-color 0.3s, transform 0.3s; }
+  .testimonial-card:hover { border-color: rgba(196,30,30,0.25); transform: translateY(-3px); }
+  .testimonial-quote { font-family: 'Bebas Neue', sans-serif; font-size: 4rem; font-weight: 400; color: rgba(196,30,30,0.18); line-height: 1; margin-bottom: 0.5rem; }
+  .testimonial-card > p { font-size: 0.88rem; color: var(--muted2); line-height: 1.65; margin-bottom: 1.5rem; }
+  .testimonial-author { display: flex; align-items: center; gap: 0.75rem; }
+  .testimonial-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif; font-size: 0.7rem; font-weight: 700; color: var(--red-l); }
+  .testimonial-name { font-size: 0.82rem; font-weight: 600; color: var(--white); }
+  .testimonial-role { font-size: 0.75rem; color: var(--muted); }
+
+  /* ============== CTA FINAL ============== */
+  #cta-final { background: radial-gradient(ellipse 100% 100% at 50% 0%, rgba(196,30,30,0.08), transparent 60%), var(--surface); text-align: center; padding: 8rem 5%; }
+  .cta-final-content { max-width: 650px; margin: 0 auto; }
+  .cta-final-content h2 { font-size: clamp(2.2rem, 5vw, 3.2rem); margin-bottom: 1rem; }
+  .cta-final-content p { font-size: 1.05rem; color: var(--muted2); margin-bottom: 2.5rem; }
+  .btn-cta-final { padding: 1.1rem 2.8rem; font-size: 1rem; }
+
+  /* ============== FOOTER ============== */
+  footer { background: var(--black); padding: 5rem 5% 2.5rem; border-top: 1px solid var(--border); position: relative; z-index: 2; }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; max-width: 1100px; margin: 0 auto; }
+  .footer-brand p { margin-top: 1rem; font-size: 0.82rem; color: var(--muted); line-height: 1.6; max-width: 280px; }
+  .footer-links h5, .footer-contact h5 { font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .footer-links a, .footer-contact a { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 0.5rem; transition: color 0.2s; }
+  .footer-links a:hover, .footer-contact a:hover { color: var(--white); }
+  .footer-whatsapp, .footer-social { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .footer-contact a { margin-bottom: 0.75rem; }
+  .footer-bottom { display: flex; justify-content: space-between; align-items: center; max-width: 1100px; margin: 3rem auto 0; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.78rem; color: var(--muted); }
+
+  /* ============== RESPONSIVE ============== */
+  @media (max-width: 960px) {
+    .services-grid { grid-template-columns: repeat(2, 1fr); }
+    .steps-track { grid-template-columns: repeat(2, 1fr); }
+    .benefits-grid { grid-template-columns: repeat(2, 1fr); }
+    .te-features-grid { grid-template-columns: repeat(2, 1fr); }
+    .testimonials-track { grid-template-columns: 1fr; max-width: 500px; }
+    .section-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .nav-links, .nav-cta { display: none; }
+    .hamburger { display: flex; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .stat-item:nth-child(2) { border-right: none; }
+    .animation-stage { height: 420px; }
+    .moto-svg { width: 80px; }
+    .moto-container { bottom: 118px; }
+    .moto-ground-glow { bottom: 116px; }
+    .endpoint { bottom: 172px; font-size: 0.5rem; }
+    .city-silhouette { bottom: 140px; height: 100px; }
+    .status-tracker { gap: 0; bottom: 180px; }
+    .status-chip { padding: 5px 10px; font-size: 0.58rem; gap: 4px; }
+    .floating-badge { top: 16px; right: 16px; font-size: 0.58rem; padding: 6px 12px; }
+    .delivery-indicator { top: 16px; left: 16px; font-size: 0.6rem; padding: 6px 12px; }
+  }
+  @media (max-width: 720px) {
+    section { padding: 4.5rem 5%; }
+    .services-grid, .steps-track, .benefits-grid, .te-features-grid { grid-template-columns: 1fr; }
+    .stat-item { padding: 1.5rem 0.75rem; }
+    .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .eco-visual { flex-direction: column; align-items: center; }
+    .footer-bottom { flex-direction: column; gap: 0.5rem; text-align: center; }
+    h1 { font-size: clamp(3rem, 12vw, 5rem); }
+    .feature-cards-row { flex-direction: column; align-items: center; padding: 2rem 5%; }
+    .feature-card { max-width: 100%; }
+    .animation-stage { height: 360px; }
+    .status-tracker { bottom: 160px; }
+    .status-chip { padding: 4px 8px; font-size: 0.5rem; }
+    .delivery-indicator { display: none; }
+    .endpoint { bottom: 160px; font-size: 0.45rem; }
+    .coverage-map-container { height: 180px; }
+    .coverage-map-label { font-size: 0.4rem; }
+    .coverage-gps-dot { width: 7px; height: 7px; }
+  }
+
+  /* ============== REDUCED MOTION ============== */
+  @media (prefers-reduced-motion: reduce) {
+    .coverage-gps-dot { animation: none; }
+    .delivery-dot, .dotTrailPulse, .sparkleSpin { animation: none; }
+    .reveal, .reveal-left, .reveal-right { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="noise"></div>
+<div id="cursor"></div>
+<a href="#servicios" class="skip-link">Saltar al contenido</a>
+
+<!-- ================================ NAV ================================ -->
+<nav>
+  <a href="#" class="nav-brand">MOTO<span>EXPRESS</span></a>
+  <ul class="nav-links">
+    <li><a href="#servicios">Servicios</a></li>
+    <li><a href="#como-funciona">Cómo funciona</a></li>
+    <li><a href="#transporte-express">Transporte Express</a></li>
+    <li><a href="#cobertura">Cobertura</a></li>
+  </ul>
+  <a href="https://wa.me/5491156205622" class="nav-cta">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    WhatsApp
+  </a>
+  <button class="hamburger" id="hamburger" aria-label="Menú">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#servicios">Servicios</a>
+  <a href="#como-funciona">Cómo funciona</a>
+  <a href="#transporte-express">Transporte Express</a>
+  <a href="#cobertura">Cobertura</a>
+  <a href="https://wa.me/5491156205622" style="background:var(--red);padding:0.6rem 1.5rem;border-radius:6px;font-family:'Montserrat',sans-serif;font-size:1rem;">WhatsApp</a>
+</div>
+
+<!-- ================================ HERO ANIMATION ================================ -->
+<section id="hero">
+  <div class="animation-stage">
+
+    <!-- Vignette -->
+    <div class="stage-vignette"></div>
+
+    <!-- Map grid -->
+    <div class="map-grid"></div>
+
+    <!-- City silhouette -->
+    <svg class="city-silhouette" viewBox="0 0 2400 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <g fill="#0e0e1a">
+        <rect x="0" y="30" width="38" height="90" rx="2"/>
+        <rect x="48" y="15" width="52" height="105" rx="2"/>
+        <rect x="110" y="45" width="34" height="75" rx="2"/>
+        <rect x="155" y="20" width="46" height="100" rx="2"/>
+        <rect x="212" y="50" width="30" height="70" rx="2"/>
+        <rect x="254" y="10" width="56" height="110" rx="2"/>
+        <rect x="322" y="40" width="40" height="80" rx="2"/>
+        <rect x="374" y="25" width="48" height="95" rx="2"/>
+        <rect x="434" y="5" width="62" height="115" rx="3"/>
+        <rect x="508" y="35" width="42" height="85" rx="2"/>
+        <rect x="562" y="18" width="50" height="102" rx="2"/>
+        <rect x="624" y="42" width="36" height="78" rx="2"/>
+        <rect x="672" y="12" width="54" height="108" rx="2"/>
+        <rect x="738" y="28" width="44" height="92" rx="2"/>
+        <rect x="794" y="8" width="58" height="112" rx="3"/>
+        <rect x="864" y="38" width="40" height="82" rx="2"/>
+        <rect x="916" y="22" width="48" height="98" rx="2"/>
+        <rect x="976" y="45" width="34" height="75" rx="2"/>
+        <rect x="1022" y="15" width="55" height="105" rx="2"/>
+        <rect x="1089" y="32" width="42" height="88" rx="2"/>
+        <rect x="1143" y="6" width="60" height="114" rx="3"/>
+        <!-- Duplicate -->
+        <rect x="1200" y="30" width="38" height="90" rx="2"/>
+        <rect x="1248" y="15" width="52" height="105" rx="2"/>
+        <rect x="1310" y="45" width="34" height="75" rx="2"/>
+        <rect x="1355" y="20" width="46" height="100" rx="2"/>
+        <rect x="1412" y="50" width="30" height="70" rx="2"/>
+        <rect x="1454" y="10" width="56" height="110" rx="2"/>
+        <rect x="1522" y="40" width="40" height="80" rx="2"/>
+        <rect x="1574" y="25" width="48" height="95" rx="2"/>
+        <rect x="1634" y="5" width="62" height="115" rx="3"/>
+        <rect x="1708" y="35" width="42" height="85" rx="2"/>
+        <rect x="1762" y="18" width="50" height="102" rx="2"/>
+        <rect x="1824" y="42" width="36" height="78" rx="2"/>
+        <rect x="1872" y="12" width="54" height="108" rx="2"/>
+        <rect x="1938" y="28" width="44" height="92" rx="2"/>
+        <rect x="1994" y="8" width="58" height="112" rx="3"/>
+        <rect x="2064" y="38" width="40" height="82" rx="2"/>
+        <rect x="2116" y="22" width="48" height="98" rx="2"/>
+        <rect x="2176" y="45" width="34" height="75" rx="2"/>
+        <rect x="2222" y="15" width="55" height="105" rx="2"/>
+        <rect x="2289" y="32" width="42" height="88" rx="2"/>
+        <rect x="2343" y="6" width="60" height="114" rx="3"/>
+      </g>
+    </svg>
+
+    <!-- City windows (JS populated) -->
+    <svg class="city-silhouette" id="windowsSvg" viewBox="0 0 2400 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="z-index:3;mix-blend-mode:soft-light;"></svg>
+
+    <!-- Atmospheric mist -->
+    <div class="atmosphere" id="atmosphere"></div>
+
+    <!-- Route -->
+    <div class="route-path"></div>
+    <div class="route-pulse" id="routePulse"></div>
+
+    <!-- Floating badge -->
+    <div class="floating-badge">
+      <span class="badge-dot"></span>
+      SERVICIO ACTIVO &middot; ZONA SUR
+    </div>
+
+    <!-- Delivery indicator -->
+    <div class="delivery-indicator">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--red-l)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span class="delivery-time" id="deliveryTime">18:00</span>
+    </div>
+
+    <!-- Endpoints -->
+    <div class="endpoint endpoint-pickup"><div class="endpoint-marker"></div>RECOGIDA</div>
+    <div class="endpoint endpoint-dropoff"><div class="endpoint-marker"></div>DESTINO</div>
+
+    <!-- Status tracker -->
+    <div class="status-tracker" id="statusTracker">
+      <div class="status-chip" data-stage="0"><span class="status-dot"></span>Recogida confirmada</div>
+      <div class="status-chip" data-stage="1"><span class="status-dot"></span>En tránsito</div>
+      <div class="status-chip" data-stage="2"><span class="status-dot"></span>Entregado</div>
+    </div>
+
+    <!-- Delivery dot -->
+    <div class="delivery-dot" id="deliveryDot"></div>
+  </div>
+
+  <!-- Feature cards -->
+  <div class="feature-cards-row">
+    <div class="feature-card">
+      <div class="feature-card-icon">
+        <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <h3>Entrega Express</h3>
+      <p>En tu puerta en menos de 2 horas</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-icon">
+        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/></svg>
+      </div>
+      <h3>Retiro en el momento</h3>
+      <p>Pasamos a buscar cuando vos querés</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
+      </div>
+      <h3>Seguimiento en tiempo real</h3>
+      <p>Sabés dónde está tu envío siempre</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================ STATS ================================ -->
+<section id="stats">
+  <img src="assets/img/delivery-stats.png" alt="Moto Express — Estadísticas de entregas" class="stats-bg-img" loading="lazy">
+  <div class="stats-grid">
+    <div class="stat-item">
+      <div class="stat-num"><span data-counter data-prefix="+" data-target="5000">0</span></div>
+      <div class="stat-label">Envíos realizados</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num"><span data-counter data-prefix="+" data-target="120">0</span></div>
+      <div class="stat-label">Clientes activos</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num"><span data-counter data-prefix="+" data-target="4">0</span></div>
+      <div class="stat-label">Años de experiencia</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num"><span data-counter data-target="98">0</span>%</div>
+      <div class="stat-label">Entregas a tiempo</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================ SERVICES ================================ -->
+<section id="servicios">
+  <div class="section-header centered reveal">
+    <span class="section-label">Servicios</span>
+    <h2>Todo lo que necesitás para mover tu negocio</h2>
+    <p>Soluciones de cadetería y logística pensadas para comercios, empresas y particulares. Elegí el servicio que mejor se adapte a tu necesidad.</p>
+  </div>
+
+  <div class="services-grid">
+    <article class="service-card reveal" style="--i:0;">
+      <div class="service-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="17" cy="8" r="4"/><path d="M3 21v-1a5 5 0 0 1 5-5h4M13 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><circle cx="7" cy="9" r="1"/></svg></div>
+      <h3>Cadetería en moto</h3>
+      <p>Envíos urgentes de documentación, paquetes y correspondencia. Retiramos y entregamos en el día con seguimiento en tiempo real.</p>
+    </article>
+    <article class="service-card reveal" style="--i:1;">
+      <div class="service-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+      <h3>Entregas express</h3>
+      <p>Servicio prioritario para envíos que no pueden esperar. Tu paquete llega a destino en el menor tiempo posible, sin escalas.</p>
+    </article>
+    <article class="service-card reveal" style="--i:2;">
+      <div class="service-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg></div>
+      <h3>Trámites administrativos</h3>
+      <p>Gestionamos tus trámites en bancos, organismos públicos y entidades. Ahorrás tiempo y evitás filas.</p>
+    </article>
+    <article class="service-card reveal" style="--i:3;">
+      <div class="service-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+      <h3>Pagos y cobranzas</h3>
+      <p>Realizamos pagos de servicios, impuestos y cobranzas a clientes. Todo registrado con comprobante digital.</p>
+    </article>
+    <article class="service-card reveal" style="--i:4;">
+      <div class="service-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+      <h3>Mini fletes</h3>
+      <p>Traslado de objetos medianos, muebles pequeños, equipos y mercadería entre sucursales o a clientes finales.</p>
+    </article>
+    <article class="service-card reveal" style="--i:5;">
+      <div class="service-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+      <h3>Logística para ecommerce</h3>
+      <p>Soluciones de entrega para tiendas online. Same-day delivery, tracking y gestión de devoluciones.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ================================ HOW IT WORKS ================================ -->
+<section id="como-funciona">
+  <div class="section-header centered reveal">
+    <span class="section-label">Cómo funciona</span>
+    <h2>Cuatro pasos, cero complicaciones</h2>
+    <p>Coordinamos tu envío de forma simple. Vos pedís, nosotros hacemos el resto.</p>
+  </div>
+  <img src="assets/img/delivery-hero.png" alt="Moto Express — Logística rápida y confiable" class="steps-visual" loading="lazy">
+  <div class="steps-track">
+    <div class="step-card reveal" style="--i:0;">
+      <div class="step-num">01</div>
+      <h3>Pedís el servicio</h3>
+      <p>Contactanos por WhatsApp, teléfono o Instagram. Contanos qué necesitás enviar, desde dónde y hacia dónde. Te respondemos en minutos.</p>
+    </div>
+    <div class="step-card reveal" style="--i:1;">
+      <div class="step-num">02</div>
+      <h3>Retiramos el pedido</h3>
+      <p>Un motociclista pasa a buscar tu envío en la dirección indicada. Coordinamos horario y te avisamos cuando llega a retirar.</p>
+    </div>
+    <div class="step-card reveal" style="--i:2;">
+      <div class="step-num">03</div>
+      <h3>Realizamos el envío</h3>
+      <p>Tu paquete viaja directo a destino. Podés seguir el recorrido y recibir actualizaciones del estado en tiempo real por WhatsApp.</p>
+    </div>
+    <div class="step-card reveal" style="--i:3;">
+      <div class="step-num">04</div>
+      <h3>Confirmamos la entrega</h3>
+      <p>Te enviamos el comprobante de entrega con firma y foto. Tu envío está completo, documentado y respaldado.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================ WHY CHOOSE US ================================ -->
+<section id="por-que">
+  <div class="section-header centered reveal">
+    <span class="section-label">Por qué elegirnos</span>
+    <h2>Velocidad, confianza y respaldo</h2>
+    <p>No somos una app impersonal. Somos un equipo real que conoce las calles y se responsabiliza por cada envío.</p>
+  </div>
+  <div class="benefits-grid">
+    <div class="benefit-card reveal" style="--i:0;">
+      <div class="benefit-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+      <h4>Atención rápida</h4>
+      <p>Respondemos en menos de 5 minutos. Coordinamos tu envío al instante y arranca de inmediato.</p>
+    </div>
+    <div class="benefit-card reveal" style="--i:1;">
+      <div class="benefit-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg></div>
+      <h4>Seguimiento en tiempo real</h4>
+      <p>Sabés dónde está tu paquete en cada momento con actualizaciones por WhatsApp.</p>
+    </div>
+    <div class="benefit-card reveal" style="--i:2;">
+      <div class="benefit-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
+      <h4>Cobertura urbana</h4>
+      <p>Llegamos a toda la zona sur y alrededores. Consultanos por zonas de cobertura especial.</p>
+    </div>
+    <div class="benefit-card reveal" style="--i:3;">
+      <div class="benefit-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg></div>
+      <h4>Entregas seguras</h4>
+      <p>Comprobante digital con firma y foto en cada entrega. Tu paquete siempre está respaldado.</p>
+    </div>
+    <div class="benefit-card reveal" style="--i:4;">
+      <div class="benefit-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <h4>Personal confiable</h4>
+      <p>Cadetes registrados con experiencia y compromiso. Gente que conoce cada calle del recorrido.</p>
+    </div>
+    <div class="benefit-card reveal" style="--i:5;">
+      <div class="benefit-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><circle cx="12" cy="14" r="2"/></svg></div>
+      <h4>Planes para empresas</h4>
+      <p>Planes mensuales, facturación y cuenta corriente para comercios. Soluciones a medida de tu negocio.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================ ECOMMERCE ================================ -->
+<section id="ecommerce">
+  <div class="section-grid">
+    <div class="section-grid-text reveal-left">
+      <span class="section-label">Para tu negocio</span>
+      <h2>Entregas rápidas, clientes felices</h2>
+      <p class="section-lead">El 67% de los consumidores valora más la velocidad de entrega que el precio del envío. Con Moto Express, tus productos llegan el mismo día y tus clientes vuelven a comprar.</p>
+      <ul class="eco-features">
+        <li class="reveal" style="--i:0;"><div class="eco-dot"></div><div><strong>Same-day delivery</strong><span>Entregas en el día para que tus clientes no esperen. Convertí más ventas con envíos inmediatos.</span></div></li>
+        <li class="reveal" style="--i:1;"><div class="eco-dot"></div><div><strong>Rutas optimizadas</strong><span>Planificamos las rutas más eficientes para reducir costos y tiempos de entrega en cada envío.</span></div></li>
+        <li class="reveal" style="--i:2;"><div class="eco-dot"></div><div><strong>Devoluciones simples</strong><span>Gestionamos la logística inversa. Tus clientes devuelven productos sin fricción y sin complicaciones.</span></div></li>
+        <li class="reveal" style="--i:3;"><div class="eco-dot"></div><div><strong>Dashboard de envíos</strong><span>Accedé al estado de todos tus envíos en tiempo real. Información clara, organizada y siempre disponible.</span></div></li>
+      </ul>
+    </div>
+    <div class="section-grid-visual reveal-right">
+      <img src="assets/img/delivery-stats.png" alt="Moto Express — Dashboard de entregas" class="eco-dash-img" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<!-- ================================ TRANSPORTE EXPRESS ================================ -->
+<section id="transporte-express">
+  <div class="te-section">
+    <div class="section-header reveal">
+      <span class="section-label te-label">Transporte Express</span>
+      <h2>Más capacidad, la misma confianza</h2>
+      <p>Para envíos de mayor volumen, cargas múltiples o mudanzas pequeñas, nuestra división de transporte te ofrece el espacio y la seguridad que necesitás.</p>
+    </div>
+    <div class="logo-carousel reveal">
+      <div class="logo-carousel-track">
+        <span class="logo-carousel-item moto">MOTO EXPRESS</span>
+        <span class="logo-carousel-item transporte">TRANSPORTE EXPRESS</span>
+        <span class="logo-carousel-item moto">MOTO EXPRESS</span>
+        <span class="logo-carousel-item transporte">TRANSPORTE EXPRESS</span>
+        <span class="logo-carousel-item moto">MOTO EXPRESS</span>
+        <span class="logo-carousel-item transporte">TRANSPORTE EXPRESS</span>
+        <span class="logo-carousel-item moto">MOTO EXPRESS</span>
+        <span class="logo-carousel-item transporte">TRANSPORTE EXPRESS</span>
+      </div>
+    </div>
+    <div class="te-features-grid">
+      <div class="te-feature reveal" style="--i:0;">
+        <div class="te-feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+        <h4>Transporte de paquetería</h4>
+        <p>Múltiples paquetes en un solo viaje. Ideal para distribuidores y mayoristas.</p>
+      </div>
+      <div class="te-feature reveal" style="--i:1;">
+        <div class="te-feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+        <h4>Mini mudanzas</h4>
+        <p>Traslado de muebles, equipos y objetos que no entran en una moto. Cuidadoso y seguro.</p>
+      </div>
+      <div class="te-feature reveal" style="--i:2;">
+        <div class="te-feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <h4>Abastecimiento de comercios</h4>
+        <p>Llevamos mercadería a tu local desde depósitos y proveedores. Reposición rápida y programada.</p>
+      </div>
+      <div class="te-feature reveal" style="--i:3;">
+        <div class="te-feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <h4>Cargas programadas</h4>
+        <p>Servicio recurrente para empresas. Días y horarios fijos con precios preferenciales.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================ COVERAGE ================================ -->
+<section id="cobertura">
+  <div class="section-header centered reveal">
+    <span class="section-label">Cobertura</span>
+    <h2>Presentes donde nos necesitás</h2>
+    <p>Operamos en Zona Sur y alrededores. Si no encontrás tu zona, consultanos — ampliamos nuestra cobertura cada mes.</p>
+  </div>
+  <div class="coverage-map reveal">
+    <div class="coverage-map-container">
+      <div class="coverage-map-grid"></div>
+      <!-- Static zone dots -->
+      <div class="coverage-map-dot" style="top:15%;left:20%;animation-delay:0s;"></div>
+      <div class="coverage-map-dot" style="top:35%;left:40%;animation-delay:0.5s;"></div>
+      <div class="coverage-map-dot" style="top:55%;left:30%;animation-delay:1s;"></div>
+      <div class="coverage-map-dot" style="top:25%;left:65%;animation-delay:0.3s;"></div>
+      <div class="coverage-map-dot" style="top:50%;left:75%;animation-delay:0.8s;"></div>
+      <div class="coverage-map-dot" style="top:70%;left:20%;animation-delay:1.3s;"></div>
+      <div class="coverage-map-dot" style="top:60%;left:55%;animation-delay:0.6s;"></div>
+      <div class="coverage-map-dot" style="top:30%;left:80%;animation-delay:1.1s;"></div>
+      <div class="coverage-map-dot" style="top:75%;left:65%;animation-delay:0.4s;"></div>
+      <div class="coverage-map-dot" style="top:45%;left:12%;animation-delay:0.9s;"></div>
+      <!-- GPS searching dot -->
+      <div class="coverage-gps-dot"></div>
+      <!-- Zone labels -->
+      <span class="coverage-map-label" style="top:12%;left:17%;">Avellaneda</span>
+      <span class="coverage-map-label" style="top:52%;left:27%;">Lanús</span>
+      <span class="coverage-map-label" style="top:22%;left:60%;">Lomas de Zamora</span>
+      <span class="coverage-map-label" style="top:67%;left:17%;">Quilmes</span>
+      <span class="coverage-map-label" style="top:47%;left:70%;">Berazategui</span>
+      <span class="coverage-map-label" style="top:37%;left:38%;">Banfield</span>
+      <span class="coverage-map-label" style="top:27%;left:75%;">Adrogué</span>
+    </div>
+    <div class="coverage-zones">
+      <span>Avellaneda</span><span>Lanús</span><span>Lomas de Zamora</span>
+      <span>Banfield</span><span>Temperley</span><span>Adrogué</span>
+      <span>Quilmes</span><span>Berazategui</span><span>Wilde</span>
+      <span>Monte Chingolo</span><span>Remedios de Escalada</span><span>Burzaco</span>
+    </div>
+    <p class="coverage-note">Consultá por envíos a otras zonas</p>
+  </div>
+</section>
+
+<!-- ================================ TESTIMONIALS ================================ -->
+<section id="testimonios">
+  <div class="section-header centered reveal">
+    <span class="section-label">Testimonios</span>
+    <h2>Lo que dicen nuestros clientes</h2>
+  </div>
+  <div class="testimonials-track reveal">
+    <div class="testimonial-card">
+      <div class="testimonial-quote">&ldquo;</div>
+      <p>Desde que trabajamos con Moto Express, nuestras entregas son mucho más rápidas. Los clientes notan la diferencia y volvieron a comprar.</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">LM</div>
+        <div><div class="testimonial-name">Laura M.</div><div class="testimonial-role">Dueña de tienda online</div></div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-quote">&ldquo;</div>
+      <p>Necesitaba un servicio de cadetería confiable para trámites bancarios. Con Moto Express nunca tuve un problema. Son serios y cumplen.</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">MR</div>
+        <div><div class="testimonial-name">Martín R.</div><div class="testimonial-role">Estudio contable</div></div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-quote">&ldquo;</div>
+      <p>El servicio de Transporte Express me salvó la mudanza del consultorio. Llegaron puntuales y manejaron todo con cuidado.</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">CS</div>
+        <div><div class="testimonial-name">Carolina S.</div><div class="testimonial-role">Odontóloga</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================ CTA FINAL ================================ -->
+<section id="cta-final">
+  <div class="cta-final-content reveal">
+    <h2>Coordiná tu envío ahora</h2>
+    <p>Contanos qué necesitás y te armamos la mejor solución. Respuesta inmediata por WhatsApp.</p>
+    <a href="https://wa.me/5491156205622" class="btn-primary btn-cta-final">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      Solicitar envío por WhatsApp
+    </a>
+  </div>
+</section>
+
+<!-- ================================ FOOTER ================================ -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="#" class="nav-brand">MOTO<span>EXPRESS</span></a>
+      <p>Servicio de cadetería en moto, entregas express y logística urbana en Zona Sur y alrededores.</p>
+      <p style="margin-top:0.75rem;font-size:0.82rem;color:var(--muted2);">Presidente Arturo Illia 16<br>Florencio Varela, Buenos Aires</p>
+    </div>
+    <div class="footer-links">
+      <h5>Servicios</h5>
+      <a href="#servicios">Cadetería en moto</a>
+      <a href="#servicios">Entregas express</a>
+      <a href="#servicios">Trámites</a>
+      <a href="#transporte-express">Transporte Express</a>
+    </div>
+    <div class="footer-links">
+      <h5>Empresa</h5>
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#por-que">Por qué elegirnos</a>
+      <a href="#cobertura">Cobertura</a>
+      <a href="#testimonios">Testimonios</a>
+    </div>
+    <div class="footer-contact">
+      <h5>Contacto</h5>
+      <a href="https://wa.me/5491156205622" class="footer-whatsapp"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> WhatsApp</a>
+      <a href="#" class="footer-social"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg> Instagram</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; <span id="currentYear"></span> Moto Express. Todos los derechos reservados.</p>
+    <p>Transporte Express — División Transporte</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  function $(sel, scope) { return (scope || document).querySelector(sel); }
+  function $$(sel, scope) { return Array.from((scope || document).querySelectorAll(sel)); }
+
+  var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var fineHover = matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+  /* ── Footer year ── */
+  (function () { var el = $("#currentYear"); if (el) el.textContent = new Date().getFullYear(); })();
+
+  /* ── Mobile menu ── */
+  (function () {
+    var btn = $("#hamburger");
+    var menu = $("#mobileMenu");
+    if (!btn || !menu) return;
+    btn.addEventListener("click", function () {
+      var open = menu.classList.contains("open");
+      menu.classList.toggle("open", !open);
+      btn.classList.toggle("open", !open);
+      document.body.style.overflow = open ? "" : "hidden";
+    });
+    menu.querySelectorAll("a").forEach(function (a) {
+      a.addEventListener("click", function () {
+        menu.classList.remove("open");
+        btn.classList.remove("open");
+        document.body.style.overflow = "";
+      });
+    });
+  })();
+
+  /* ── Custom cursor ── */
+  (function () {
+    if (!fineHover) return;
+    var c = $("#cursor");
+    if (!c) return;
+    var mx = 0, my = 0;
+    document.addEventListener("mousemove", function (e) { mx = e.clientX; my = e.clientY; c.style.transform = "translate(" + mx + "px, " + my + "px)"; c.style.opacity = "1"; });
+    document.addEventListener("mouseleave", function () { c.style.opacity = "0"; });
+    var hoverables = $$("a, button, .btn-primary, .btn-ghost, .nav-cta, .service-card, .benefit-card, .step-card, .te-feature, .coverage-zones span, .testimonial-card, .hamburger");
+    hoverables.forEach(function (el) { el.addEventListener("mouseenter", function () { c.classList.add("hover"); }); el.addEventListener("mouseleave", function () { c.classList.remove("hover"); }); });
+  })();
+
+  /* ── Scroll reveals ── */
+  (function () {
+    var items = $$(".reveal, .reveal-left, .reveal-right");
+    if (!items.length) return;
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) { entry.target.classList.add("visible"); observer.unobserve(entry.target); }
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+    items.forEach(function (el) { observer.observe(el); });
+    setTimeout(function () { items.forEach(function (el) { el.classList.add("visible"); }); }, 6000);
+  })();
+
+  /* ── Counter animation ── */
+  (function () {
+    function animate(el) {
+      var target = +el.getAttribute("data-target");
+      var prefix = el.getAttribute("data-prefix") || "";
+      if (!target) return;
+      var duration = 1800, start = performance.now();
+      function update(now) { var p = Math.min((now - start) / duration, 1); var eased = 1 - Math.pow(1 - p, 3); el.textContent = prefix + Math.floor(eased * target).toLocaleString("es"); if (p < 1) requestAnimationFrame(update); else el.textContent = prefix + target.toLocaleString("es"); }
+      requestAnimationFrame(update);
+    }
+    var counters = $$("[data-counter]");
+    if (reduced) { counters.forEach(function (el) { var pfx = el.getAttribute("data-prefix") || ""; el.textContent = pfx + (+el.getAttribute("data-target")).toLocaleString("es"); }); return; }
+    var observer = new IntersectionObserver(function (entries) { entries.forEach(function (entry) { if (entry.isIntersecting) { animate(entry.target); observer.unobserve(entry.target); } }); }, { threshold: 0.5 });
+    counters.forEach(function (el) { observer.observe(el); });
+  })();
+
+  /* ── Magnetic hover for CTA buttons ── */
+  (function () {
+    if (!fineHover) return;
+    $$(".btn-cta-final, .btn-primary").forEach(function (btn) {
+      btn.addEventListener("mousemove", function (e) { var r = btn.getBoundingClientRect(); var x = ((e.clientX - r.left) / r.width - 0.5) * 10; var y = ((e.clientY - r.top) / r.height - 0.5) * 10; btn.style.transform = "translate(" + x + "px, " + y + "px)"; });
+      btn.addEventListener("mouseleave", function () { btn.style.transform = ""; });
+    });
+  })();
+
+  /* ── Smooth scroll with sticky offset ── */
+  (function () {
+    document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+      a.addEventListener("click", function (e) {
+        var href = this.getAttribute("href");
+        if (href === "#") return;
+        var target = document.querySelector(href);
+        if (!target) return;
+        e.preventDefault();
+        var top = target.getBoundingClientRect().top + window.pageYOffset - 80;
+        window.scrollTo({ top: top, behavior: "smooth" });
+      });
+    });
+  })();
+
+  /* ── Animation: building windows ── */
+  (function () {
+    var svg = document.getElementById('windowsSvg');
+    if (!svg) return;
+    var html = '';
+    var buildings = [
+      { x: 0, y: 30, w: 38, h: 90, cols: 2, rows: 4 },
+      { x: 48, y: 15, w: 52, h: 105, cols: 3, rows: 4 },
+      { x: 110, y: 45, w: 34, h: 75, cols: 2, rows: 3 },
+      { x: 155, y: 20, w: 46, h: 100, cols: 3, rows: 4 },
+      { x: 212, y: 50, w: 30, h: 70, cols: 1, rows: 3 },
+      { x: 254, y: 10, w: 56, h: 110, cols: 3, rows: 5 },
+      { x: 322, y: 40, w: 40, h: 80, cols: 2, rows: 3 },
+      { x: 374, y: 25, w: 48, h: 95, cols: 3, rows: 4 },
+      { x: 434, y: 5, w: 62, h: 115, cols: 4, rows: 5 },
+      { x: 508, y: 35, w: 42, h: 85, cols: 2, rows: 4 },
+      { x: 562, y: 18, w: 50, h: 102, cols: 3, rows: 4 },
+      { x: 624, y: 42, w: 36, h: 78, cols: 2, rows: 3 },
+      { x: 672, y: 12, w: 54, h: 108, cols: 3, rows: 5 },
+      { x: 738, y: 28, w: 44, h: 92, cols: 2, rows: 4 },
+      { x: 794, y: 8, w: 58, h: 112, cols: 3, rows: 5 },
+      { x: 864, y: 38, w: 40, h: 82, cols: 2, rows: 3 },
+      { x: 916, y: 22, w: 48, h: 98, cols: 3, rows: 4 },
+      { x: 976, y: 45, w: 34, h: 75, cols: 2, rows: 3 },
+      { x: 1022, y: 15, w: 55, h: 105, cols: 3, rows: 5 },
+      { x: 1089, y: 32, w: 42, h: 88, cols: 2, rows: 4 },
+      { x: 1143, y: 6, w: 60, h: 114, cols: 3, rows: 5 },
+    ];
+    function addWindows(offsetX) {
+      buildings.forEach(function (b) {
+        var gapX = (b.w - 6) / Math.max(b.cols, 1);
+        var gapY = (b.h - 8) / Math.max(b.rows, 1);
+        for (var r = 0; r < b.rows; r++) {
+          for (var c = 0; c < b.cols; c++) {
+            var wx = offsetX + b.x + 4 + c * gapX;
+            var wy = b.y + 4 + r * gapY;
+            var ww = 2 + Math.random() * 2;
+            var wh = 3 + Math.random() * 3;
+            var delay = Math.random() * 6;
+            var dur = 2.5 + Math.random() * 7;
+            var baseOp = 0.1 + Math.random() * 0.25;
+            var peakOp = 0.45 + Math.random() * 0.4;
+            html += '<rect x="' + wx + '" y="' + wy + '" width="' + ww + '" height="' + wh + '" rx="0.5" opacity="' + baseOp + '" fill="rgba(255,255,255,0.25)">';
+            html += '<animate attributeName="opacity" values="' + baseOp + ';' + peakOp + ';' + baseOp + '" dur="' + dur + 's" begin="' + delay + 's" repeatCount="indefinite"/>';
+            html += '</rect>';
+          }
+        }
+      });
+    }
+    addWindows(0);
+    addWindows(1200);
+    svg.innerHTML = html;
+  })();
+
+  /* ── Animation: atmospheric mist ── */
+  (function () {
+    var container = document.getElementById('atmosphere');
+    if (!container) return;
+    for (var i = 0; i < 12; i++) {
+      var p = document.createElement('div');
+      p.className = 'mist-particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.top = (30 + Math.random() * 40) + '%';
+      p.style.height = (20 + Math.random() * 60) + 'px';
+      p.style.animationDuration = (6 + Math.random() * 10) + 's';
+      p.style.animationDelay = Math.random() * 8 + 's';
+      p.style.opacity = (0.3 + Math.random() * 0.7);
+      container.appendChild(p);
+    }
+  })();
+
+  /* ── Animation: status tracker synced with moto ── */
+  (function () {
+    var chips = Array.from(document.querySelectorAll('.status-chip[data-stage]'));
+    var stageClasses = ['active-retiro', 'active-camino', 'active-entregado'];
+    var currentStage = -1;
+    function updateStage(n) {
+      if (n === currentStage) return;
+      currentStage = n;
+      chips.forEach(function (chip, i) {
+        chip.className = 'status-chip';
+        if (i === n) chip.classList.add(stageClasses[i]);
+      });
+    }
+    function trackerLoop() {
+      var moto = document.getElementById('deliveryDot');
+      if (!moto) return;
+      function check() {
+        var left = parseFloat(getComputedStyle(moto).left);
+        var vw = window.innerWidth;
+        var pct = (left + 200) / (vw + 400);
+        if (pct < 0.04) { currentStage = -1; updateStage(0); }
+        else if (pct < 0.30) { updateStage(0); }
+        else if (pct < 0.62) { updateStage(1); }
+        else if (pct < 0.90) { updateStage(2); }
+        else if (pct > 0.96) { currentStage = -1; updateStage(0); }
+        requestAnimationFrame(check);
+      }
+      requestAnimationFrame(check);
+    }
+    updateStage(0);
+    trackerLoop();
+  })();
+
+  /* ── Animation: countdown timer ── */
+  (function () {
+    var el = document.getElementById('deliveryTime');
+    if (!el) return;
+    var totalSeconds = 18 * 60;
+    var startTime = Date.now();
+    function tick() {
+      var elapsed = Math.floor((Date.now() - startTime) / 1000);
+      var remaining = totalSeconds - elapsed;
+      if (remaining <= 0) { startTime = Date.now(); remaining = totalSeconds; }
+      var mins = Math.floor(remaining / 60);
+      var secs = remaining % 60;
+      el.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+      requestAnimationFrame(function () { setTimeout(tick, 1000); });
+    }
+    tick();
+  })();
+})();
+</script>
+</body>
+</html>
